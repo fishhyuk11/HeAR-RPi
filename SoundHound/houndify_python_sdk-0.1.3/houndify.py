@@ -28,7 +28,7 @@ class TextHoundClient:
 		self.clientKey = base64.urlsafe_b64decode(clientKey)
 		self.requestInfo = requestInfo
 		self.conversationState = dict()
-	
+
 	def query(self, query):
 		"""
 		Make a text query to Hound.
@@ -243,19 +243,23 @@ class StreamingHoundClient:
 # The code below will demonstrate how to use streaming audio through Hound
 #
 if __name__ == '__main__':
-	# We'll accept WAV files but it should be straightforward to 
+	# We'll accept WAV files but it should be straightforward to
 	# use samples from a microphone or other source
 	import wave
 	import sys
 
 	BUFFER_SIZE = 512
 
-	if len(sys.argv) < 4:
+	if len(sys.argv) ==  4:
 		print "Usage: %s <client key> <client ID> <wav file> [ <more wav files> ]" % sys.argv[0]
 		sys.exit(0)
 
-	CLIENT_KEY = sys.argv[1]
-	CLIENT_ID = sys.argv[2]
+#	CLIENT_KEY = sys.argv[1]
+#	CLIENT_ID = sys.argv[2]
+
+        CLIENT_KEY = 'arunIHMyBqoARiGLn-sbdxuZNRRqBlafShVkTIDi6WNf7q0t-AsQAtWog8iga92FI99z8IuA6OUJxC1OUCNc-A=='
+
+        CLIENT_ID = 'LdOQEtUzBrsZRMt4fEDnLw=='
 
 	#
 	# Simplest HoundListener; just print out what we receive.
@@ -276,7 +280,7 @@ if __name__ == '__main__':
 	## Pretend we're at SoundHound HQ.  Set other fields as appropriate
 	client.setLocation(37.388309, -121.973968)
 
-	for fname in sys.argv[3:]:
+        for fname in sys.argv[1:]:
 		print "============== %s ===================" % fname
 		audio = wave.open(fname)
 		samples = audio.readframes(BUFFER_SIZE)
