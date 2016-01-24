@@ -3,13 +3,16 @@ import json
 import socket
 import sys
 
+sys.path.insert(0, 'SoundHound/houndify_python_sdk-0.1.3')
 import houndify
 import sys
 import alsaaudio as alsa
 import audioop
 import time
 
+# Socket related stuff
 HOST, PORT = "127.0.0.1", 7777
+sock = None
 
 # Constants used for mic input
 CHANNELS = 1
@@ -21,7 +24,40 @@ FRAMESIZE = 1024
 CLIENT_KEY = 'arunIHMyBqoARiGLn-sbdxuZNRRqBlafShVkTIDi6WNf7q0t-AsQAtWog8iga92FI99z8IuA6OUJxC1OUCNc-A=='
 CLIENT_ID = 'LdOQEtUzBrsZRMt4fEDnLw=='
 
+msgID = 0
+intensity = 0
+direction = "FRONT"
+
+# Listener for the mic input
+class MyListener(houndify.HoundListener):
+    def __init__(self, msgID):
+        super(self.__class__, self).__init__()
+        self.msgID = msgID
+        self.count = 0
+
+    def onPartialTranscript(self, transcript):
+        if transcript != "":
+            print "Partial transcript: " + transcript
+            sendMessage(self.msgID, self.count, "SPEECH", intensity, transcript, direction, False)
+            self.count += 1
+    def onFinalResponse(self, response):
+        responseStr = str(response)
+        splitString = responseStr.split("'")
+        for i in range(len(splitString)):
+            if splitString[i] == 'Transcription':
+                transcript = splitString[i+2]
+                print "Final response:" + transcript
+                sendMessage(self.msgID, self.count, "SPEECH", intensity, transcript, direction, True)
+                self.count += 1
+                # print "Final response: " + str(response)
+    def onTranslatedResponse(self, response):
+                print "Translated response: " + response
+    def onError(self, err):
+                print "ERROR"
+
 def main(argv):
+    global msgID
+
     if len(argv) < 1:
         print('main.py <server ip address>')
         sys.exit(2)
@@ -39,24 +75,9 @@ def main(argv):
         mic[i].setperiodsize(FRAMESIZE)
 
     # Initialize SoundHound here
-    # Listener for the mic input
-    class MyListener(houndify.HoundListener):
-	def onPartialTranscript(self, transcript):
-            if transcript != "": print "Partial transcript: " + transcript
-	def onFinalResponse(self, response):
-            responseStr = str(response)
-            splitString = responseStr.split("'")
-            for i in range(len(splitString)):
-                if splitString[i] == 'Transcription':
-                    print "Final response:" + splitString[i+2]
-                    # print "Final response: " + str(response)
-		def onTranslatedResponse(self, response):
-                    print "Translated response: " + response
-		def onError(self, err):
-                    print "ERROR"
 
     client = houndify.StreamingHoundClient(CLIENT_KEY, CLIENT_ID)
-	## Pretend we're at SoundHound HQ.  Set other fields as appropriate
+    ## Pretend we're at SoundHound HQ.  Set other fields as appropriate
     client.setLocation(37.388309, -121.973968)
 
     # Initialize network connection here
@@ -79,7 +100,8 @@ def main(argv):
 
         # samples = sys.stdin.read(BUFFER_SIZE)
         finished = [False for i in range(micnum)]
-        client.start(MyListener())
+        client.start(MyListener(msgID))
+        msgID += 1
         while not finished:
             finished = [client.fill(data[i]) for i in range(micnum)]
         for i in range(micnum):
@@ -90,44 +112,18 @@ def main(argv):
         client.finish()
         # time.sleep(0.5)
 
-        # Send the result to iPhone
-        '''
-        Wrap processed data as json
-            id: message id
-            cnt: packet counter
-            cat: category of sound
-            int: intensity of sound
-            cont: content of a sound
-            dir: direction of the sound
-            isFinal: a boolean terminal indicator
-        '''
-        # A container for processed data
-        data = {}
-
         # Temporary test data
-        ID = 1
-        cnt = 1
-        cat = 'SPEECH'
-        inte = 3.0
-        direc = 'FRONTLEFT'
+        # ID = 1
+        # cnt = 1
+        # cat = 'SPEECH'
+        # inte = 3.0
+        # direc = 'FRONTLEFT'
 
-        try:
-            cont = raw_input("Input data to send to server: ")
-        except KeyboardInterrupt:
-            print("Ctrl+C pressed. Client terminating...")
-            running = False
-
-        data['id'] = ID
-        data['cnt'] = cnt
-        data['cat'] = cat
-        data['int'] = inte
-        data['cont'] = cont
-        data['dir'] = direc
-        data['isFinal'] = True
-
-        data = json.dumps(data)
-
-        sock.sendall(bytes(data + "\n"))
+        # try:
+        #     cont = raw_input("Input data to send to server: ")
+        # except KeyboardInterrupt:
+        #     print("Ctrl+C pressed. Client terminating...")
+        #     running = False
 
     # Shutdown network connection
     sock.close()
@@ -135,6 +131,31 @@ def main(argv):
     # Shutdown SoundHound
 
     # Shutdown microphone --> no need!
+
+def sendMessage(ID, count, category, intensity, content, direction, isFinal):
+    # Send the result to iPhone
+    '''
+    Wrap processed data as json
+        id: message id
+        cnt: packet counter
+        cat: category of sound
+        int: intensity of sound
+        cont: content of a sound
+        dir: direction of the sound
+        isFinal: a boolean terminal indicator
+    '''
+    # A container for processed data
+    data = {}
+    data['id'] = ID
+    data['cnt'] = count
+    data['cat'] = category
+    data['int'] = intensity
+    data['cont'] = content
+    data['dir'] = direction
+    data['isFinal'] = isFinal
+
+    data = json.dumps(data)
+    sock.sendall(bytes(data + "\n"))
 
 if __name__ == '__main__':
     main(sys.argv[1:])
