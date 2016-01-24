@@ -30,8 +30,8 @@ def main(argv):
 
     # Initialize microphone here
     miccards = alsa.cards()
-    micnum = len(miccards)
-    mic = [alsa.PCM(alsa.PCM_CAPTURE,alsa.PCM_NORMAL,cards[i]) for i in range(micnum)]
+    micnum = len(miccards) - 1
+    mic = [alsa.PCM(alsa.PCM_CAPTURE,alsa.PCM_NORMAL,miccards[i]) for i in range(micnum)]
     for i in range(micnum):
         mic[i].setchannels(CHANNELS)
         mic[i].setrate(RATE)
@@ -75,7 +75,7 @@ def main(argv):
         l = [0 for i in range(micnum)]
         data = [0 for i in range(micnum)]
         for i in range(micnum):
-            l[i], data[i] = [mic[i].read() for i in range(micnum)]
+            l[i], data[i] = mic[i].read()
 
         # samples = sys.stdin.read(BUFFER_SIZE)
         finished = [False for i in range(micnum)]
@@ -83,7 +83,7 @@ def main(argv):
         while not finished:
             finished = [client.fill(data[i]) for i in range(micnum)]
         for i in range(micnum):
-            l[i], data[i] = [mic[i].read() for i in range(micnum)]
+            l[i], data[i] = mic[i].read()
         # samples = sys.stdin.read(BUFFER_SIZE)
         if len(data[0]) == 0:
             break
@@ -106,23 +106,26 @@ def main(argv):
 
         # Temporary test data
         ID = 1
-        cnt = 1
-        cat = 'SPEECH'
-        inte = 3.0
-        direc = 'FRONTLEFT'
+        counter = 1
+        category = 'SPEECH'
+        intensity = 3.0
+        direction = 'FRONTLEFT'
+        content = 'HELLO'
 
+        '''
         try:
             cont = raw_input("Input data to send to server: ")
         except KeyboardInterrupt:
             print("Ctrl+C pressed. Client terminating...")
             running = False
+        '''
 
         data['id'] = ID
-        data['cnt'] = cnt
-        data['cat'] = cat
-        data['int'] = inte
-        data['cont'] = cont
-        data['dir'] = direc
+        data['cnt'] = counter
+        data['cat'] = category
+        data['int'] = intensity
+        data['cont'] = content
+        data['dir'] = direction
         data['isFinal'] = True
 
         data = json.dumps(data)
