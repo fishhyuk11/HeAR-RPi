@@ -31,7 +31,10 @@ def main(argv):
     # Initialize microphone here
     miccards = alsa.cards()
     micnum = len(miccards) - 1
-    mic = [alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[i]) for i in range(micnum)]
+    mic = [alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL)]
+    mic.append(alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[1]))
+    mic.append(alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[2]))
+    #mic = [alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[i]) for i in range(micnum)]
     for i in range(micnum):
         mic[i].setchannels(CHANNELS)
         mic[i].setrate(RATE)
@@ -93,12 +96,13 @@ def main(argv):
         ind = 0
         #if prmssorted[2] - prmssorted[0] > 20:
         maxpp = [aud.maxpp(data[i],1) for i in range(micnum)]
+        print maxpp
         maxppsorted = sorted(maxpp)
-        print maxppsorted
-        if maxppsorted[2] - maxppsorted[0] > 260:
+        if maxppsorted[2] - maxppsorted[1] > 20:
             # possible value of dirscore: 4,5,6,8,9,10
             #dirscore = 4 * prms.index(prmssorted[2]) + 2 * prms.index(prmssorted[1]) +  prms.index(prmssorted[0])
             dirscore = 4 * maxpp.index(maxppsorted[2]) + 2 * maxpp.index(maxppsorted[1]) +  maxpp.index(maxppsorted[0])
+            print dirscore
             dictionary = {'0':'UNDEFINED',
                           '1':'UNDEFINED',
                           '2':'UNDEFINED',
@@ -115,7 +119,7 @@ def main(argv):
                           '13':'UNDEFINED',
                           '14':'UNDEFINED'}
             direction = dictionary[str(dirscore)]
-            ind = maxpp.index(maxppsorted[2])
+            #ind = maxpp.index(maxppsorted[2])
             #i = prms.index(prmssorted[2])
             print ind
             print direction
@@ -131,9 +135,9 @@ def main(argv):
             #for i in range(micnum):
             l[ind], data[ind] = mic[ind].read()
             # samples = sys.stdin.read(BUFFER_SIZE)
-            if len(data[ind]) == 0:
+            '''if len(data[ind]) == 0:
                 print "end?"
-                break
+                break'''
         client.finish()
         # time.sleep(0.5)
 
