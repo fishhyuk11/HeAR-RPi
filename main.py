@@ -41,22 +41,23 @@ def main(argv):
     # Initialize SoundHound here
     # Listener for the mic input
     class MyListener(houndify.HoundListener):
-	def onPartialTranscript(self, transcript):
-            if transcript != "": print "Partial transcript: " + transcript
-	def onFinalResponse(self, response):
+        def onPartialTranscript(self, transcript):
+            if transcript != "":
+                print "Partial transcript: " + transcript
+        def onFinalResponse(self, response):
             responseStr = str(response)
             splitString = responseStr.split("'")
             for i in range(len(splitString)):
                 if splitString[i] == 'Transcription':
                     print "Final response:" + splitString[i+2]
-                    # print "Final response: " + str(response)
-		def onTranslatedResponse(self, response):
+                    # print "Final response: " + str(response)  
+        def onTranslatedResponse(self, response):
                     print "Translated response: " + response
-		def onError(self, err):
+        def onError(self, err):
                     print "ERROR"
 
     client = houndify.StreamingHoundClient(CLIENT_KEY, CLIENT_ID)
-	## Pretend we're at SoundHound HQ.  Set other fields as appropriate
+    ## Pretend we're at SoundHound HQ.  Set other fields as appropriate
     client.setLocation(37.388309, -121.973968)
 
     # Initialize network connection here
