@@ -1,10 +1,17 @@
 #!/usr/bin/env python
-import socket
 import json
+import socket
+import sys
 
 HOST, PORT = "127.0.0.1", 7777
 
-def main():
+def main(argv):
+    if len(argv) < 1:
+        print('main.py <server ip address>')
+        sys.exit(2)
+    else:
+        HOST = argv[0]
+
     # Initialize microphone here
 
     # Initialize SoundHound here
@@ -13,9 +20,9 @@ def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create a socket (SOCK_STREAM means a TCP socket)
     try:
         sock.connect((HOST, PORT))
-    except:
-        print("Could not connect to server!")
-        exit(-1)
+    except socket.error, msg:
+        print("Could not connect to server! Error: %s" % msg)
+        sys.exit(-1)
 
     # Main update loop
     running = True
@@ -67,4 +74,4 @@ def main():
     # Shutdown microphone
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
