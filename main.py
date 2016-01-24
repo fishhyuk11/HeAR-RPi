@@ -1,10 +1,17 @@
 #!/usr/bin/env python
-import socket
 import json
+import socket
+import sys
 
 HOST, PORT = "127.0.0.1", 7777
 
-def main():
+def main(argv):
+    if len(argv) < 1:
+        print('main.py <server ip address>')
+        sys.exit(2)
+    else:
+        HOST = argv[0]
+
     # Initialize microphone here
 
     # Initialize SoundHound here
@@ -13,12 +20,10 @@ def main():
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # Create a socket (SOCK_STREAM means a TCP socket)
     try:
         sock.connect((HOST, PORT))
-    except:
-        print("Could not connect to server!")
-        exit(-1)
+    except socket.error, msg:
+        print("Could not connect to server! Error: %s" % msg)
+        sys.exit(-1)
 
-    # A container for processed data
-    data = {}
     # Main update loop
     running = True
     while running == True:
@@ -34,6 +39,22 @@ def main():
             cont: content of a sound
             dir: direction of the sound
         '''
+        # A container for processed data
+        data = {}
+
+        # Temporary test data
+        ID = 1
+        cnt = 1
+        cat = 'SPEECH'
+        inte = 3.0
+        direc = 'FRONTLEFT'
+
+        try:
+            cont = raw_input("Input data to send to server: ")
+        except KeyboardInterrupt:
+            print("Ctrl+C pressed. Client terminating...")
+            running = False
+
         data['id'] = ID
         data['cnt'] = cnt
         data['cat'] = cat
@@ -43,13 +64,6 @@ def main():
 
         data = json.dumps(data)
 
-        '''
-        try:
-            data = raw_input("Input data to send to server: ")
-        except KeyboardInterrupt:
-            print("Ctrl+C pressed. Client terminating...")
-            running = False
-        '''
         sock.sendall(bytes(data + "\n"))
 
     # Shutdown network connection
@@ -60,4 +74,4 @@ def main():
     # Shutdown microphone
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
