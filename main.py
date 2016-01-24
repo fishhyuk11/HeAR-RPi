@@ -17,8 +17,6 @@ def main():
         print("Could not connect to server!")
         exit(-1)
 
-    # A container for processed data
-    data = {}
     # Main update loop
     running = True
     while running == True:
@@ -34,6 +32,22 @@ def main():
             cont: content of a sound
             dir: direction of the sound
         '''
+        # A container for processed data
+        data = {}
+
+        # Temporary test data
+        ID = 1
+        cnt = 1
+        cat = 'SPEECH'
+        inte = 3.0
+        direc = 'FRONTLEFT'
+
+        try:
+            cont = raw_input("Input data to send to server: ")
+        except KeyboardInterrupt:
+            print("Ctrl+C pressed. Client terminating...")
+            running = False
+
         data['id'] = ID
         data['cnt'] = cnt
         data['cat'] = cat
@@ -43,13 +57,6 @@ def main():
 
         data = json.dumps(data)
 
-        '''
-        try:
-            data = raw_input("Input data to send to server: ")
-        except KeyboardInterrupt:
-            print("Ctrl+C pressed. Client terminating...")
-            running = False
-        '''
         sock.sendall(bytes(data + "\n"))
 
     # Shutdown network connection
