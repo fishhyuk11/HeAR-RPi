@@ -5,9 +5,8 @@ import sys
 
 sys.path.insert(0, 'SoundHound/houndify_python_sdk-0.1.3')
 import houndify
-import sys
 import alsaaudio as alsa
-import audioop
+import audioop as aud
 import time
 
 # Socket related stuff
@@ -31,7 +30,6 @@ direction = "FRONT"
 # Listener for the mic input
 class MyListener(houndify.HoundListener):
     def __init__(self, msgID):
-        super(self.__class__, self).__init__()
         self.msgID = msgID
         self.count = 0
 
@@ -57,6 +55,9 @@ class MyListener(houndify.HoundListener):
 
 def main(argv):
     global msgID
+    global direction
+    global intensity
+    global sock
 
     if len(argv) < 1:
         print('main.py <server ip address>')
@@ -66,11 +67,11 @@ def main(argv):
 
     # Initialize microphone here
     miccards = alsa.cards()
-    micnum = len(miccards)
+    micnum = len(miccards) - 1
     '''mic = [alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL)]
     mic.append(alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[1]))
     mic.append(alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[2]))'''
-    mic = [alsa.PCM(alsa.PCM_CAPTURE,alsa.PCM_NORMAL,cards[i]) for i in range(micnum)]
+    mic = [alsa.PCM(alsa.PCM_CAPTURE,alsa.PCM_NORMAL,miccards[i]) for i in range(micnum)]
     for i in range(micnum):
         mic[i].setchannels(CHANNELS)
         mic[i].setrate(RATE)
@@ -146,9 +147,6 @@ def main(argv):
         # samples = sys.stdin.read(BUFFER_SIZE)
         # finished = [None for i in range(micnum)]
         finished = False
-        client.finish()
-        # time.sleep(0.5)
-        finished = [False for i in range(micnum)]
         client.start(MyListener(msgID))
         msgID += 1
         while not finished:
@@ -161,17 +159,19 @@ def main(argv):
         # time.sleep(0.5)
 
         # Temporary test data
-        # ID = 1
-        # cnt = 1
-        # cat = 'SPEECH'
-        # inte = 3.0
-        # direc = 'FRONTLEFT'
+        '''ID = 1
+        cnt = 1
+        cat = 'SPEECH'
+        inte = 3.0
+        direc = 'FRONTLEFT'
 
-        # try:
-        #     cont = raw_input("Input data to send to server: ")
-        # except KeyboardInterrupt:
-        #     print("Ctrl+C pressed. Client terminating...")
-        #     running = False
+        try:
+            cont = raw_input("Input data to send to server: ")
+        except KeyboardInterrupt:
+            print("Ctrl+C pressed. Client terminating...")
+            running = False
+        sendMessage(msgID, cnt, cat, inte, cont, direc, False)
+        '''
 
     # Shutdown network connection
     sock.close()
@@ -203,7 +203,11 @@ def sendMessage(ID, count, category, intensity, content, direction, isFinal):
     data['isFinal'] = isFinal
 
     data = json.dumps(data)
-    sock.sendall(bytes(data + "\n"))
+    try:
+        sock.sendall(bytes(data + "\n"))
+    except socket.error, msg:
+        print("Could not connect to server! Error: %s" % msg)
+        sys.exit(-1)
 
 if __name__ == '__main__':
     main(sys.argv[1:])
