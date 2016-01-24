@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import socket
+import json
 
 HOST, PORT = "127.0.0.1", 7777
 
@@ -16,22 +17,41 @@ def main():
         print("Could not connect to server!")
         exit(-1)
 
+    # A container for processed data
+    data = {}
     # Main update loop
     running = True
     while running == True:
         # Process incoming sound here
 
         # Send the result to iPhone
-        data = "this is test data"
+        '''
+        Wrap processed data as json
+            id: message id
+            cnt: packet counter
+            cat: category of sound
+            int: intensity of sound
+            cont: content of a sound
+            dir: direction of the sound
+        '''
+        data['id'] = ID
+        data['cnt'] = cnt
+        data['cat'] = cat
+        data['int'] = inte
+        data['cont'] = cont
+        data['dir'] = direc
 
+        data = json.dumps(data)
+
+        '''
         try:
             data = raw_input("Input data to send to server: ")
         except KeyboardInterrupt:
             print("Ctrl+C pressed. Client terminating...")
             running = False
-
+        '''
         sock.sendall(bytes(data + "\n"))
-    
+
     # Shutdown network connection
     sock.close()
 

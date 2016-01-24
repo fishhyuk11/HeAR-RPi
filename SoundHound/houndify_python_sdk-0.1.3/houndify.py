@@ -270,7 +270,12 @@ if __name__ == '__main__':
 		def onPartialTranscript(self, transcript):
 			print "Partial transcript: " + transcript
 		def onFinalResponse(self, response):
-			print "Final response: " + str(response)
+                        responseStr = str(response)
+                        stringSplit = responseStr.split("'")
+                        for i in range(len(stringSplit)):
+                            if stringSplit[i] == 'Transcription':
+                                print stringSplit[i+2]
+			#print "Final response: " + str(response)
 		def onTranslatedResponse(self, response):
 			print "Translated response: " + response
 		def onError(self, err):
