@@ -9,7 +9,9 @@ import alsaaudio as alsa
 import audioop as aud
 import time
 
+# Socket related stuff
 HOST, PORT = "127.0.0.1", 7777
+sock = None
 
 # Constants used for mic input
 CHANNELS = 1

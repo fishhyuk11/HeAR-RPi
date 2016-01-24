@@ -67,6 +67,9 @@ def main(argv):
     # Initialize microphone here
     miccards = alsa.cards()
     micnum = len(miccards)
+    '''mic = [alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL)]
+    mic.append(alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[1]))
+    mic.append(alsa.PCM(alsa.PCM_CAPTURE, alsa.PCM_NORMAL, miccards[2]))'''
     mic = [alsa.PCM(alsa.PCM_CAPTURE,alsa.PCM_NORMAL,cards[i]) for i in range(micnum)]
     for i in range(micnum):
         mic[i].setchannels(CHANNELS)
@@ -96,19 +99,64 @@ def main(argv):
         l = [0 for i in range(micnum)]
         data = [0 for i in range(micnum)]
         for i in range(micnum):
-            l[i], data[i] = [mic[i].read() for i in range(micnum)]
+            l[i], data[i] = mic[i].read()
+
+        # greedy algorithm which selects most loud sound
+        #rms = [aud.rms(data[i],1) for i in range(micnum)]
+        #rmssorted = sorted(rms)
+        '''
+        L = 100
+        mxix = [aud.findmax(data[i],L) for i in range(micnum)]
+        prms = [aud.rms(data[i][mxix[i]*2:(mxix[i]+L)*2],1) for i in range(micnum)]
+        prmssorted = sorted(prms)
+        print prmssorted
+        '''
+        direction = 'UNDEFINED'
+        ind = 0
+        #if prmssorted[2] - prmssorted[0] > 20:
+        maxpp = [aud.maxpp(data[i],1) for i in range(micnum)]
+        print maxpp
+        maxppsorted = sorted(maxpp)
+        if maxppsorted[2] - maxppsorted[1] > 20:
+            # possible value of dirscore: 4,5,6,8,9,10
+            #dirscore = 4 * prms.index(prmssorted[2]) + 2 * prms.index(prmssorted[1]) +  prms.index(prmssorted[0])
+            dirscore = 4 * maxpp.index(maxppsorted[2]) + 2 * maxpp.index(maxppsorted[1]) +  maxpp.index(maxppsorted[0])
+            print dirscore
+            dictionary = {'0':'UNDEFINED',
+                          '1':'UNDEFINED',
+                          '2':'UNDEFINED',
+                          '3':'UNDEFINED',
+                          '4':'LEFT',
+                          '5':'BACKLEFT',
+                          '6':'FRONTLEFT',
+                          '7':'UNDEFINED',
+                          '8':'FRONTRIGHT',
+                          '9':'BACKRIGHT',
+                          '10':'RIGHT',
+                          '11':'UNDEFINED',
+                          '12':'UNDEFINED',
+                          '13':'UNDEFINED',
+                          '14':'UNDEFINED'}
+            direction = dictionary[str(dirscore)]
+            #ind = maxpp.index(maxppsorted[2])
+            #i = prms.index(prmssorted[2])
+            print ind
+            print direction
 
         # samples = sys.stdin.read(BUFFER_SIZE)
+        # finished = [None for i in range(micnum)]
+        finished = False
+        client.finish()
+        # time.sleep(0.5)
         finished = [False for i in range(micnum)]
         client.start(MyListener(msgID))
         msgID += 1
         while not finished:
-            finished = [client.fill(data[i]) for i in range(micnum)]
-        for i in range(micnum):
-            l[i], data[i] = [mic[i].read() for i in range(micnum)]
+            finished = client.fill(data[ind])
+            l[ind], data[ind] = mic[ind].read()
         # samples = sys.stdin.read(BUFFER_SIZE)
-        if len(data[0]) == 0:
-            break
+            if len(data[0]) == 0:
+                break
         client.finish()
         # time.sleep(0.5)
 
