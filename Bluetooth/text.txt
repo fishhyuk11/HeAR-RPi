@@ -1,0 +1,2 @@
+"This is an example text"
+"Please save our world"
