@@ -192,6 +192,8 @@ def sendMessage(ID, count, category, intensity, content, direction, isFinal):
         dir: direction of the sound
         isFinal: a boolean terminal indicator
     '''
+    if direction == 'UNDEFINED':
+        direction = 'FRONT'
     # A container for processed data
     data = {}
     data['id'] = ID
