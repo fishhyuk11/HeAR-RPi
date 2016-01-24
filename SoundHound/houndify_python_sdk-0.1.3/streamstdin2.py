@@ -61,6 +61,7 @@ if __name__ == '__main__':
         print i
 #	BUFFER_SIZE = 512
         l, data = inp.read()
+        print("Read %u bytes" % l )
 	# samples = sys.stdin.read(BUFFER_SIZE)
 	finished = False
 	client.start(MyListener())
